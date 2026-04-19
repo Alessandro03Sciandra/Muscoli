@@ -19,6 +19,29 @@ body.dark .acc-hdr{background:#1a1a1a;border-color:#2E2E2E}
 body.dark .acc-hdr:hover,.dark .acc-hdr.open{background:#222}
 body.dark .kpi{background:#111}
 body.dark .hard-q{background:#111}
+/* ── LOGIN OVERLAY ──────────────────────────────────────────────── */
+#loginOverlay{position:fixed;inset:0;background:#0d0d0d;display:flex;align-items:center;justify-content:center;z-index:2000}
+.login-box{background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:16px;padding:42px 36px 36px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.login-logo{font-size:32px;font-weight:900;color:#fff;letter-spacing:-2px;text-transform:uppercase;margin-bottom:3px}
+.login-sub{font-size:10px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:30px}
+.login-box h2{font-size:14px;font-weight:900;color:#999;text-transform:uppercase;letter-spacing:.8px;margin-bottom:20px}
+.login-input{width:100%;background:#111;border:1.5px solid #2e2e2e;border-radius:8px;padding:11px 14px;font-size:14px;color:#eee;margin-bottom:10px;outline:none;transition:border-color .15s;font-family:inherit;display:block}
+.login-input:focus{border-color:#555}
+.login-btn{width:100%;background:#fff;color:#111;border:none;border-radius:8px;padding:12px;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;margin-top:6px;transition:background .13s,transform .1s}
+.login-btn:hover{background:#e0e0e0}
+.login-btn:active{transform:scale(.98)}
+.login-err{color:#e74c3c;font-size:12px;font-weight:700;min-height:18px;margin-bottom:8px;text-align:left}
+.login-link{font-size:12px;color:#555;margin-top:16px}
+.login-link a{color:#aaa;text-decoration:none;font-weight:700;cursor:pointer}
+.login-link a:hover{color:#fff}
+.login-divider{height:1px;background:#222;margin:20px 0}
+.login-users{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px}
+.login-user-chip{background:#222;border:1.5px solid #333;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ccc;cursor:pointer;transition:background .13s,border-color .13s}
+.login-user-chip:hover{background:#2e2e2e;border-color:#555;color:#fff}
+/* ── USER BADGE IN TOPBAR ──────────────────────────────────────── */
+#btnUser{background:#1a1a1a;border:1.5px solid #333;color:#aaa;padding:5px 12px;border-radius:5px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .13s}
+#btnUser:hover{background:#2a2a2a;color:#fff}
+#userDot{width:7px;height:7px;border-radius:50%;background:#0D8050;display:inline-block}
 body{transition:background .25s,color .25s}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
@@ -235,6 +258,36 @@ body.dark .nota-corpo{color:#C0C0C0}
 </head>
 <body>
 
+<!-- ── LOGIN OVERLAY ────────────────────────────────────────────── -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">💪 Muscoli</div>
+    <div class="login-sub">Diario di Allenamento</div>
+
+    <!-- LOGIN VIEW -->
+    <div id="loginView">
+      <div id="loginChips" class="login-users"></div>
+      <h2>Accedi</h2>
+      <input class="login-input" type="text" id="loginUser" placeholder="Username" autocomplete="username" />
+      <input class="login-input" type="password" id="loginPwd" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()" />
+      <div id="loginErr" class="login-err"></div>
+      <button class="login-btn" onclick="submitLogin()">Entra →</button>
+      <p class="login-link">Primo accesso? <a onclick="showRegister()">Crea un account</a></p>
+    </div>
+
+    <!-- REGISTER VIEW -->
+    <div id="registerView" style="display:none">
+      <h2>Crea account</h2>
+      <input class="login-input" type="text" id="regUser" placeholder="Username" autocomplete="username" />
+      <input class="login-input" type="password" id="regPwd" placeholder="Password (min 4 caratteri)" autocomplete="new-password" />
+      <input class="login-input" type="password" id="regPwd2" placeholder="Ripeti password" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()" />
+      <div id="regErr" class="login-err"></div>
+      <button class="login-btn" onclick="submitRegister()">Crea account →</button>
+      <p class="login-link">Hai già un account? <a onclick="showLogin()">Accedi</a></p>
+    </div>
+  </div>
+</div>
+
 <header class="topbar">
   <div class="brand">
     <span class="brand-logo">Muscoli</span>
@@ -245,6 +298,7 @@ body.dark .nota-corpo{color:#C0C0C0}
     <button class="btn-rip" id="btnRip" onclick="openRipasso()">&#128257; Ripasso <span id="ripBadge"></span></button>
     <button class="btn-rip" onclick="openStats()">&#128200; Stats</button>
     <button class="btn-rip" id="btnDark" onclick="toggleDark()">&#9790;</button>
+    <button id="btnUser" onclick="doLogout()"><span id="userDot"></span><span id="userLabel">—</span> &nbsp;✕</button>
     <div id="pills" style="display:flex;gap:8px"></div>
   </div>
 </header>
@@ -487,10 +541,84 @@ const L=['A','B','C','D'];
 let aCh=0, aSec='teoria', aChT=0, teoriaDetail=null;
 let qEx=null, qI=0, qDone=false, qAnswers=[], qItems=[], isRipasso=false, freeMode=false;
 
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+const USERS_KEY='muscoli_users';
+const SESSION_KEY='muscoli_session';
+let currentUser=null;
+function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY)||'{}')}catch(e){return{}}}
+function saveUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u))}
+function hashPwd(p){return btoa(unescape(encodeURIComponent(p)))}
+function showLogin(){
+  document.getElementById('loginView').style.display='';
+  document.getElementById('registerView').style.display='none';
+  document.getElementById('loginErr').textContent='';
+  buildUserChips();
+}
+function showRegister(){
+  document.getElementById('loginView').style.display='none';
+  document.getElementById('registerView').style.display='';
+  document.getElementById('regErr').textContent='';
+}
+function buildUserChips(){
+  const users=getUsers();
+  const names=Object.keys(users);
+  const el=document.getElementById('loginChips');
+  if(!names.length){el.innerHTML='';return;}
+  el.innerHTML=names.map(n=>'<div class="login-user-chip" onclick="document.getElementById(\x27loginUser\x27).value=\x27'+n+'\x27;document.getElementById(\x27loginPwd\x27).focus()">'+n+'</div>').join('');
+}
+function submitLogin(){
+  const user=document.getElementById('loginUser').value.trim();
+  const pwd=document.getElementById('loginPwd').value;
+  const err=document.getElementById('loginErr');
+  if(!user||!pwd){err.textContent='Compila tutti i campi.';return;}
+  const users=getUsers();
+  if(!users[user]){err.textContent='Utente non trovato.';return;}
+  if(users[user]!==hashPwd(pwd)){err.textContent='Password errata.';return;}
+  currentUser=user;
+  localStorage.setItem(SESSION_KEY,user);
+  bootApp();
+}
+function submitRegister(){
+  const user=document.getElementById('regUser').value.trim();
+  const pwd=document.getElementById('regPwd').value;
+  const pwd2=document.getElementById('regPwd2').value;
+  const err=document.getElementById('regErr');
+  if(!user||!pwd||!pwd2){err.textContent='Compila tutti i campi.';return;}
+  if(user.length<2){err.textContent='Username troppo corto.';return;}
+  if(pwd.length<4){err.textContent='Password minimo 4 caratteri.';return;}
+  if(pwd!==pwd2){err.textContent='Le password non coincidono.';return;}
+  const users=getUsers();
+  if(users[user]){err.textContent='Username già in uso.';return;}
+  users[user]=hashPwd(pwd);
+  saveUsers(users);
+  currentUser=user;
+  localStorage.setItem(SESSION_KEY,user);
+  bootApp();
+}
+function doLogout(){
+  if(!confirm('Vuoi uscire dal profilo "'+currentUser+'"?'))return;
+  currentUser=null;
+  localStorage.removeItem(SESSION_KEY);
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPwd').value='';
+  document.getElementById('loginErr').textContent='';
+  showLogin();
+  document.getElementById('loginOverlay').style.display='flex';
+}
+function bootApp(){
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('userLabel').textContent=currentUser;
+  renderPills();
+  renderTeoria();
+  updateBadge();
+  buildDropdowns();
+  if(localStorage.getItem('darkMode')==='1'){document.getElementById('btnDark').textContent='\u2600';}
+}
+
 // ── SPACED REPETITION ────────────────────────────────────────────────────────
-const SR_KEY='muscoli_sr2';
-function getSR(){try{return JSON.parse(localStorage.getItem(SR_KEY)||'{}')}catch(e){return{}}}
-function saveSR(d){localStorage.setItem(SR_KEY,JSON.stringify(d))}
+function srKey(){return'muscoli_sr2_'+(currentUser||'guest')}
+function getSR(){try{return JSON.parse(localStorage.getItem(srKey())||'{}')}catch(e){return{}}}
+function saveSR(d){localStorage.setItem(srKey(),JSON.stringify(d))}
 function today(){return new Date().toISOString().split('T')[0]}
 function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0]}
 function qId(exId,qi){return exId+'_'+qi}
@@ -555,7 +683,7 @@ function renderTeoria(){
     const items=ex.teoria||[];
     const schema=items.find(it=>it.tipo==='schema'&&it.src);
     const testi=items.filter(it=>it.tipo==='testo');
-    const noteKey='nota_'+ex.id;
+    const noteKey='nota_'+(currentUser||'guest')+'_'+ex.id;
     const savedNote=localStorage.getItem(noteKey)||'';
     // studiato?
     const sr=getSR(),t=today();
@@ -895,8 +1023,6 @@ function toggleDark(){
   document.getElementById('btnDark').textContent=on?'\u2600':'\u263D';
   localStorage.setItem('darkMode',on?'1':'0');
 }
-if(localStorage.getItem('darkMode')==='1'){document.body.classList.add('dark');}
-
 // ── DROPDOWN NAV ─────────────────────────────────────────────────────────────
 function buildDropdowns(){
   ['teoria','quiz'].forEach(sec=>{
@@ -922,11 +1048,13 @@ function buildDropdowns(){
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-renderPills();
-renderTeoria();
-updateBadge();
-buildDropdowns();
-if(localStorage.getItem('darkMode')==='1'){document.getElementById('btnDark').textContent='\u2600';}
+if(localStorage.getItem('darkMode')==='1'){document.body.classList.add('dark');document.getElementById('btnDark').textContent='\u2600';}
+currentUser=localStorage.getItem(SESSION_KEY)||null;
+if(currentUser){
+  bootApp();
+} else {
+  showLogin();
+}
 </script>
 </body>
 </html>
