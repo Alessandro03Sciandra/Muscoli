@@ -38,10 +38,25 @@ body.dark .hard-q{background:#111}
 .login-users{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px}
 .login-user-chip{background:#222;border:1.5px solid #333;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#ccc;cursor:pointer;transition:background .13s,border-color .13s}
 .login-user-chip:hover{background:#2e2e2e;border-color:#555;color:#fff}
+/* ── SEARCH BAR ─────────────────────────────────────────────────── */
+.search-wrap{position:relative;display:flex;align-items:center}
+.icon-btn{background:none;border:none;cursor:pointer;color:#666;font-size:16px;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:color .15s,background .15s;flex-shrink:0}
+.icon-btn:hover{color:#ccc;background:#222}
+.search-icon-btn{background:none;border:none;cursor:pointer;color:#666;font-size:16px;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:color .15s,background .15s;flex-shrink:0}
+.search-icon-btn:hover{color:#ccc;background:#222}
+#searchInput{background:#1a1a1a;border:1.5px solid #333;border-radius:6px;padding:4px 10px;font-size:11px;color:#eee;outline:none;width:0;opacity:0;transition:width .2s,opacity .2s,border-color .15s;font-family:inherit;pointer-events:none}
+#searchInput.open{width:180px;opacity:1;pointer-events:auto;border-color:#555}
+#searchResults{position:absolute;top:calc(100% + 6px);left:0;min-width:280px;background:var(--card);border:1.5px solid var(--bdr);border-radius:10px;box-shadow:var(--sh2);z-index:100;overflow:hidden;display:none}
+.sr-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;transition:background .12s}
+.sr-item:hover{background:var(--bg)}
+.sr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sr-info{flex:1;min-width:0}
+.sr-title{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-ch{font-size:10px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.sr-empty{padding:12px 14px;font-size:12px;color:var(--sub);text-align:center}
 /* ── USER BADGE IN TOPBAR ──────────────────────────────────────── */
-#btnUser{background:#1a1a1a;border:1.5px solid #333;color:#aaa;padding:5px 12px;border-radius:5px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .13s}
-#btnUser:hover{background:#2a2a2a;color:#fff}
-#userDot{width:7px;height:7px;border-radius:50%;background:#0D8050;display:inline-block}
+#btnUser{background:none;border:none;cursor:pointer;color:#666;font-size:16px;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:color .15s,background .15s;flex-shrink:0}
+#btnUser:hover{color:#ccc;background:#222}
 body{transition:background .25s,color .25s}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
@@ -262,7 +277,7 @@ body.dark .nota-corpo{color:#C0C0C0}
 <div id="loginOverlay">
   <div class="login-box">
     <div class="login-logo">💪 Muscoli</div>
-    <div class="login-sub">Diario di Allenamento</div>
+    <div class="login-sub">Guida agli Esercizi di Muscolazione</div>
 
     <!-- LOGIN VIEW -->
     <div id="loginView">
@@ -272,8 +287,11 @@ body.dark .nota-corpo{color:#C0C0C0}
       <input class="login-input" type="password" id="loginPwd" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()" />
       <div id="loginErr" class="login-err"></div>
       <button class="login-btn" onclick="submitLogin()">Entra →</button>
+      <div class="login-divider"></div>
+      <button class="login-btn" style="background:#222;color:#aaa;border:1.5px solid #333" onclick="enterGuest()">Entra senza account</button>
       <p class="login-link">Primo accesso? <a onclick="showRegister()">Crea un account</a></p>
     </div>
+    <p style="margin-top:24px;font-size:10px;color:#333;letter-spacing:.5px">&copy; 2025 Alessandro Sciandra</p>
 
     <!-- REGISTER VIEW -->
     <div id="registerView" style="display:none">
@@ -295,11 +313,15 @@ body.dark .nota-corpo{color:#C0C0C0}
     <span class="brand-sub">Delavier &mdash; Guida agli Esercizi</span>
   </div>
   <div class="top-pills">
-    <button class="btn-rip" id="btnRip" onclick="openRipasso()">&#128257; Ripasso <span id="ripBadge"></span></button>
-    <button class="btn-rip" onclick="openStats()">&#128200; Stats</button>
-    <button class="btn-rip" id="btnDark" onclick="toggleDark()">&#9790;</button>
-    <button id="btnUser" onclick="doLogout()"><span id="userDot"></span><span id="userLabel">—</span> &nbsp;✕</button>
-    <div id="pills" style="display:flex;gap:8px"></div>
+    <button class="icon-btn" id="btnDark" onclick="toggleDark()" title="Dark mode">&#9790;</button>
+    <div style="display:flex;align-items:center;gap:0">
+      <div class="search-wrap">
+        <button class="search-icon-btn" onclick="openSearch()" title="Cerca">🔍</button>
+        <input id="searchInput" type="text" placeholder="Cerca esercizio…" oninput="doSearch(this.value)" onblur="setTimeout(()=>closeSearch(),150)" autocomplete="off" />
+        <div id="searchResults"></div>
+      </div>
+      <button id="btnUser" onclick="doLogout()" title="Esci dal profilo">&#128100;</button>
+    </div>
   </div>
 </header>
 
@@ -311,6 +333,10 @@ body.dark .nota-corpo{color:#C0C0C0}
   <div class="tab-wrap" id="tw-quiz">
     <button class="tabbtn" id="tb-quiz" onclick="setSec('quiz')">&#128221; Quiz</button>
     <div class="tab-drop" id="drop-quiz"></div>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;padding:0 12px;gap:6px">
+    <button class="btn-rip" id="btnRip" onclick="openRipasso()">&#128257; Ripasso <span id="ripBadge"></span></button>
+    <button class="btn-rip" onclick="openStats()">&#128200; Stats</button>
   </div>
 </nav>
 
@@ -595,8 +621,12 @@ function submitRegister(){
   localStorage.setItem(SESSION_KEY,user);
   bootApp();
 }
+function enterGuest(){
+  currentUser='Ospite';
+  localStorage.setItem(SESSION_KEY,'Ospite');
+  bootApp();
+}
 function doLogout(){
-  if(!confirm('Vuoi uscire dal profilo "'+currentUser+'"?'))return;
   currentUser=null;
   localStorage.removeItem(SESSION_KEY);
   document.getElementById('loginUser').value='';
@@ -607,7 +637,7 @@ function doLogout(){
 }
 function bootApp(){
   document.getElementById('loginOverlay').style.display='none';
-  document.getElementById('userLabel').textContent=currentUser;
+  const ul=document.getElementById('userLabel');if(ul)ul.textContent=currentUser;
   renderPills();
   renderTeoria();
   updateBadge();
@@ -655,9 +685,10 @@ function setSec(s){
 
 // ── PILLS ─────────────────────────────────────────────────────────────────────
 function renderPills(){
+  const el=document.getElementById('pills');if(!el)return;
   const tot=CHAPTERS.reduce((s,c)=>s+c.exercises.length,0);
   const totQ=CHAPTERS.reduce((s,c)=>s+c.exercises.reduce((a,e)=>a+e.questions.length,0),0);
-  document.getElementById('pills').innerHTML=
+  el.innerHTML=
     '<div class="pill"><span class="pdot" style="background:var(--green)"></span>'+tot+' Es.</div>'+
     '<div class="pill"><span class="pdot" style="background:var(--blue)"></span>'+totQ+' Dom.</div>';
 }
@@ -1045,6 +1076,54 @@ function buildDropdowns(){
     });
     el.innerHTML=h;
   });
+}
+
+// ── SEARCH ───────────────────────────────────────────────────────────────────
+function doSearch(q){
+  const box=document.getElementById('searchResults');
+  q=q.trim().toLowerCase();
+  if(!q){box.style.display='none';return;}
+  const results=[];
+  CHAPTERS.forEach(ch=>{
+    ch.exercises.forEach(ex=>{
+      if(ex.title.toLowerCase().includes(q)||ex.sub.toLowerCase().includes(q)||(ex.id&&ex.id.includes(q))){
+        results.push({ch,ex});
+      }
+    });
+  });
+  if(!results.length){
+    box.innerHTML='<div class="sr-empty">Nessun risultato</div>';
+  } else {
+    box.innerHTML=results.slice(0,8).map(({ch,ex})=>
+      '<div class="sr-item" onmousedown="goToEx(\''+ch.id+'\',\''+ex.id+'\')">'+
+        '<span class="sr-dot" style="background:'+ch.color+'"></span>'+
+        '<div class="sr-info">'+
+          '<div class="sr-title">Es.'+String(ex.num).padStart(2,'0')+' — '+ex.title+'</div>'+
+          '<div class="sr-ch">'+ch.title+'</div>'+
+        '</div>'+
+      '</div>'
+    ).join('');
+  }
+  box.style.display='block';
+}
+function openSearch(){
+  const inp=document.getElementById('searchInput');
+  inp.classList.add('open');
+  inp.focus();
+}
+function closeSearch(){
+  document.getElementById('searchResults').style.display='none';
+  const inp=document.getElementById('searchInput');
+  inp.value='';
+  inp.classList.remove('open');
+}
+function goToEx(chId,exId){
+  const ci=CHAPTERS.findIndex(c=>c.id==chId);
+  if(ci<0)return;
+  aChT=ci;
+  teoriaDetail=exId;
+  setSec('teoria');
+  closeSearch();
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
